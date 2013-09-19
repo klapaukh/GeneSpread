@@ -1,0 +1,1 @@
+A basic biological simulator. It simulates dots that move randomly and have children. It has a naive representation of DNA, food and disease. Colors are used to show the presence of appearance controlling genes.
