@@ -1,0 +1,9 @@
+bin/
+.project
+.classpath
+.directory
+.settings/
+*.swp
+*~
+*#
+*.class
