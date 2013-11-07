@@ -1,4 +1,5 @@
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.util.Random;
 
@@ -30,7 +31,7 @@ public class World extends JComponent {
 		for (int i = 0; i < max; i++) {
 			generateFoodBursts((int) (Math.random() * width), (int) (Math.random() * height), 0);
 		}
-		
+
 		max = (int)(Math.random() * 10) + 3;
 		for (int i = 0; i < max; i++) {
 			placeWalls((int) (Math.random() * width), (int) (Math.random() * height), 0,(int)(Math.random() * 500+100),(int)(Math.random() * 8));
@@ -141,6 +142,10 @@ public class World extends JComponent {
 		}
 	}
 
+	public Dimension getPreferredSize() {
+		return new Dimension(width, height);
+	}
+
 	public boolean placeWalls(int x, int y, int depth, int maxDepth, int lastDir) {
 		if (x < width && y < height && x >= 0 && y >= 0) {
 			if (depth < maxDepth) {
@@ -216,16 +221,41 @@ public class World extends JComponent {
 	}
 
 	public static void main(String args[]) {
-		int height = 300, width = 300;
+		int width = 300;
+		int height = 300;
+		for(int i = 0; i < args.length; i++) {
+			if(args[i].equals("-w")) {
+				if(++i < args.length) {
+					try {
+						width = Integer.parseInt(args[i]);
+					} catch(NumberFormatException e) {
+						System.err.println("Invalid width: " + args[i]);
+					}
+				} else {
+					System.err.println("-w requires an argument.");
+				}
+			}
+			else if(args[i].equals("-h")) {
+				if(++i < args.length) {
+					try {
+						height = Integer.parseInt(args[i]);
+					} catch(NumberFormatException e) {
+						System.err.println("Invalid height: " + args[i]);
+					}
+				} else {
+					System.err.println("-h requires an argument.");
+				}
+			}
+			else {
+				System.err.println("Unknown argument: " + args[i]);
+			}
+		}
+
 		JFrame frame = new JFrame("Evolution Simulation");
-		frame.setSize(width + 100, height + 100);
-
 		final World w = new World(width, height);
-
 		frame.getContentPane().add(w);
-
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
+		frame.pack();
 		frame.setVisible(true);
 
 		Thread t = new Thread(new Runnable() {
