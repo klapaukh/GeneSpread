@@ -49,7 +49,7 @@ public class World extends JComponent implements Runnable {
 		}
 	}
 
-	public Terrain getSpace(int x, int y) {
+	protected Terrain getSpace(int x, int y) {
 		boolean[] free = new boolean[] { false, false, false, false, false, false, false, false };
 
 		/*
@@ -126,7 +126,7 @@ public class World extends JComponent implements Runnable {
 		}
 	}
 
-	public void move() {
+	private void move() {
 		synchronized (world) {
 			for (int i = 0; i < width; i++) {
 				for (int j = 0; j < height; j++) {
@@ -161,7 +161,7 @@ public class World extends JComponent implements Runnable {
 		return new Dimension(width, height + 20);
 	}
 
-	public boolean placeWalls(int x, int y, int depth, int maxDepth, int lastDir) {
+	private boolean placeWalls(int x, int y, int depth, int maxDepth, int lastDir) {
 		if (x < width && y < height && x >= 0 && y >= 0) {
 			if (depth < maxDepth) {
 				world[x][y] = new Wall();
@@ -210,7 +210,7 @@ public class World extends JComponent implements Runnable {
 		}
 	}
 
-	public void generateFoodBursts(int x, int y, int depth) {
+	private void generateFoodBursts(int x, int y, int depth) {
 		if (x < width && y < height && x >= 0 && y >= 0 && !world[x][y].hasFood) {
 			if (Math.random() < 1 / Math.max(1.0, depth / 20.0)) {
 				world[x][y].hasFood = true;
