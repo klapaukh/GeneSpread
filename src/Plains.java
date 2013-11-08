@@ -7,14 +7,11 @@ public class Plains extends Terrain {
 	private static final int MAX_FOOD_SUPPLY = 50;
 	public static final double FOOD_PROB = 0.15;
 
-	public Plains() {
+	public Plains(boolean hasFood) {
 		open = true;
-		if (Math.random() < FOOD_PROB) {
-			hasFood = true;
+		if(hasFood)
 			foodSupply = MAX_FOOD_SUPPLY;
-		} else {
-			hasFood = false;
-		}
+		this.hasFood = hasFood;
 	}
 
 	public int consume(int wanted) {
