@@ -12,28 +12,27 @@ public abstract class Terrain {
 
 	public abstract Color getColor();
 
-	public void move(int x, int y){
+	public void move(int x, int y) {
 		update();
-		
-		
-		if(visitor == null){
+
+		if(visitor == null) {
 			return;
-		}else{
-			if(hasFood && visitor.hungry()){
+		} else {
+			if(hasFood && visitor.hungry()) {
 				visitor.feed(this.consume(visitor.hungerLevel()));
 			}
-			if(!visitor.move(x,y)){
+			if(!visitor.move(x,y)) {
 				this.visitor = null;
 			}
 			return;
 		}
 	}
-	
-	public void update(){}
-	
-	public boolean add(Organism o){
+
+	public void update() {}
+
+	public boolean add(Organism o) {
 		return false;
 	}
-	
-	public int consume(int wanted){ return 0;}
+
+	public int consume(int wanted) { return 0; }
 }

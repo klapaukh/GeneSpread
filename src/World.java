@@ -14,10 +14,12 @@ public class World extends JComponent implements Runnable {
 	private static final int DEFAULT_WIDTH = 300;
 	private static final double DEFAULT_FREQUENCY = 50.0;
 
-	private Terrain[][] world;
 	private final int width, height;
 	private final double tickFrequency;
-	private Random random;
+	private final Terrain[][] world;
+	private final long seed;
+	private final Random random;
+
 	private int ticks = 0;
 
 	// Updated every 100 ticks.
@@ -32,6 +34,7 @@ public class World extends JComponent implements Runnable {
 		this.width = width;
 		this.height = height;
 		this.tickFrequency = tickFrequency;
+		this.seed = seed;
 		this.random = new Random(seed);
 		System.out.println("World created with seed " + seed);
 
@@ -252,27 +255,27 @@ public class World extends JComponent implements Runnable {
 					Organism o = world[i][j].visitor;
 					if(o == null)
 						continue;
-					if(o.color.equals(Color.MAGENTA.brighter())) {
+					if(o.getBaseColor().equals(Color.MAGENTA.brighter())) {
 						numPink++;
 						numFemale++;
 					}
-					else if(o.color.equals(Color.MAGENTA.darker())) {
+					else if(o.getBaseColor().equals(Color.MAGENTA.darker())) {
 						numPink++;
 						numMale++;
 					}
-					else if(o.color.equals(Color.BLUE.brighter())) {
+					else if(o.getBaseColor().equals(Color.BLUE.brighter())) {
 						numBlue++;
 						numFemale++;
 					}
-					else if(o.color.equals(Color.BLUE.darker())) {
+					else if(o.getBaseColor().equals(Color.BLUE.darker())) {
 						numBlue++;
 						numMale++;
 					}
-					else if(o.color.equals(Color.GREEN.brighter())) {
+					else if(o.getBaseColor().equals(Color.GREEN.brighter())) {
 						numGreen++;
 						numFemale++;
 					}
-					else if(o.color.equals(Color.GREEN.darker())) {
+					else if(o.getBaseColor().equals(Color.GREEN.darker())) {
 						numGreen++;
 						numMale++;
 					}
@@ -294,21 +297,23 @@ public class World extends JComponent implements Runnable {
 			ticks++;
 			repaint();
 			long end = System.currentTimeMillis();
-			if(end - start < tickPeriod) {
+			if((end - start) < tickPeriod) {
 				try {
 					Thread.sleep((tickPeriod) - (end - start));
 				} catch (InterruptedException e) {
-					e.printStackTrace();
 				}
 			}
 		}
 	}
 
 	public static void main(String args[]) {
+		// Default values.
 		int width = DEFAULT_WIDTH;
 		int height = DEFAULT_HEIGHT;
 		double tickFrequency = DEFAULT_FREQUENCY;
 		long seed = System.currentTimeMillis();
+
+		// Handle arguments.
 		for(int i = 0; i < args.length; i++) {
 			if(args[i].equals("-w")) {
 				if(++i < args.length) {
@@ -355,6 +360,7 @@ public class World extends JComponent implements Runnable {
 			}
 		}
 
+		// Create GUI.
 		JFrame frame = new JFrame("Evolution Simulation");
 		World world = new World(width, height, tickFrequency, seed);
 		frame.getContentPane().add(world);
@@ -362,6 +368,7 @@ public class World extends JComponent implements Runnable {
 		frame.pack();
 		frame.setVisible(true);
 
+		// Start simulation.
 		new Thread(world).start();
 	}
 }

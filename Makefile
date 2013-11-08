@@ -1,8 +1,11 @@
 all: bin/World.class
 
-bin/World.class: src/*.java
+bin/World.class: bin src/*.java
 	javac -d bin src/*.java
+
+bin:
+	mkdir -p bin
 
 .PHONY: clean
 clean:
-	rm -f bin/*
+	rm -rf bin

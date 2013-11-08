@@ -18,7 +18,7 @@ public class Plains extends Terrain {
 		if (this.foodSupply >= wanted) {
 			this.foodSupply -= wanted;
 			return wanted;
-		}else{
+		} else {
 			int t = this.foodSupply;
 			this.foodSupply = 0;
 			return t;
@@ -35,9 +35,9 @@ public class Plains extends Terrain {
 		if (visitor == null && !hasFood) {
 			return Color.PINK.darker();
 		} else if (visitor == null && hasFood && foodSupply > 0) {
-			return Color.red.darker();
-		}else if (visitor == null && hasFood && foodSupply == 0) {
-			return Color.red;
+			return Color.RED.darker();
+		} else if (visitor == null && hasFood && foodSupply == 0) {
+			return Color.RED;
 		}
 		return visitor.getColor();
 	}
@@ -53,5 +53,4 @@ public class Plains extends Terrain {
 	public boolean hasFood() {
 		return hasFood && foodSupply > 0;
 	}
-
 }
