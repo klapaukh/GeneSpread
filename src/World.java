@@ -10,7 +10,8 @@ public class World extends JComponent implements Runnable {
 
 	private static final long serialVersionUID = -1103859412329702985L;
 	private Terrain[][] world;
-	private int width, height;
+	private final int width, height;
+	private final double tickFrequency;
 	private Random random;
 	private int ticks = 0;
 
@@ -22,13 +23,14 @@ public class World extends JComponent implements Runnable {
 	private int numFemale = 0;
 	private int numTotal = 0;
 
-	public World(int width, int height) {
-		this(width, height, System.currentTimeMillis());
+	public World(int width, int height, double tickFrequency) {
+		this(width, height, tickFrequency, System.currentTimeMillis());
 	}
 
-	public World(int width, int height, long seed) {
+	public World(int width, int height, double tickFrequency, long seed) {
 		this.width = width;
 		this.height = height;
+		this.tickFrequency = tickFrequency;
 		this.random = new Random(seed);
 		System.out.println("World created with seed " + seed);
 
@@ -280,7 +282,9 @@ public class World extends JComponent implements Runnable {
 	}
 
 	public void run() {
+		long tickPeriod = (long)((1/tickFrequency)*1000);
 		while (true) {
+			long start = System.currentTimeMillis();
 			move();
 			if (ticks % 100 == 0) {
 				System.out.println("Gen " + ticks);
@@ -288,10 +292,13 @@ public class World extends JComponent implements Runnable {
 			}
 			ticks++;
 			repaint();
-			try {
-				Thread.sleep(20);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+			long end = System.currentTimeMillis();
+			if(end - start < tickPeriod) {
+				try {
+					Thread.sleep((tickPeriod) - (end - start));
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 	}
@@ -299,6 +306,7 @@ public class World extends JComponent implements Runnable {
 	public static void main(String args[]) {
 		int width = 300;
 		int height = 300;
+		double tickFrequency = 50.0;
 		String seed = null;
 		for(int i = 0; i < args.length; i++) {
 			if(args[i].equals("-w")) {
@@ -323,6 +331,17 @@ public class World extends JComponent implements Runnable {
 					System.err.println("-h requires an argument.");
 				}
 			}
+			else if(args[i].equals("-t")) {
+				if(++i < args.length) {
+					try {
+						tickFrequency = Double.parseDouble(args[i]);
+					} catch(NumberFormatException e) {
+						System.err.println("Invalid tick frequency: " + args[i]);
+					}
+				} else {
+					System.err.println("-t requires an argument.");
+				}
+			}
 			else if(args[i].equals("-s")) {
 				if(++i < args.length) {
 					seed = args[i];
@@ -336,7 +355,7 @@ public class World extends JComponent implements Runnable {
 		}
 
 		JFrame frame = new JFrame("Evolution Simulation");
-		World world = (seed == null ? new World(width, height) : new World(width, height, seed.hashCode()));
+		World world = (seed == null ? new World(width, height, tickFrequency) : new World(width, height, tickFrequency, seed.hashCode()));
 		frame.getContentPane().add(world);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.pack();
