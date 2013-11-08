@@ -11,7 +11,7 @@ public class World extends JComponent implements Runnable {
 	private static final long serialVersionUID = -1103859412329702985L;
 	private Terrain[][] world;
 	private int width, height;
-	private Random r;
+	private Random random;
 	private int ticks = 0;
 
 	// Updated every 100 ticks.
@@ -23,29 +23,35 @@ public class World extends JComponent implements Runnable {
 	private int numTotal = 0;
 
 	public World(int width, int height) {
+		this(width, height, System.currentTimeMillis());
+	}
+
+	public World(int width, int height, long seed) {
 		this.width = width;
 		this.height = height;
-		this.r = new Random();
+		this.random = new Random(seed);
+		System.out.println("World created with seed " + seed);
 
 		setDoubleBuffered(true);
 
 		world = new Terrain[width][height];
 		for (int i = 0; i < width; i++) {
 			for (int j = 0; j < height; j++) {
-				world[i][j] = new Plains();
-				if (world[i][j].open() && Math.random() < 0.31) {
+				world[i][j] = new Plains(random.nextDouble() < Plains.FOOD_PROB);
+				if (world[i][j].open() && random.nextDouble() < 0.31) {
 					((Plains) world[i][j]).add(new Organism(this, world));
 				}
 			}
 		}
-		int max = (int)(Math.random() * 4) + 5;
+
+		int max = random.nextInt(4) + 5;
 		for (int i = 0; i < max; i++) {
-			generateFoodBursts((int) (Math.random() * width), (int) (Math.random() * height), 0);
+			generateFoodBursts(random.nextInt(width), random.nextInt(height), 0);
 		}
 
-		max = (int)(Math.random() * 10) + 3;
+		max = random.nextInt(10) + 3;
 		for (int i = 0; i < max; i++) {
-			placeWalls((int) (Math.random() * width), (int) (Math.random() * height), 0,(int)(Math.random() * 500+100),(int)(Math.random() * 8));
+			placeWalls(random.nextInt(width), random.nextInt(height), 0, random.nextInt(500) + 100, random.nextInt(8));
 		}
 	}
 
@@ -91,7 +97,7 @@ public class World extends JComponent implements Runnable {
 		if (count == 0) {
 			return null;
 		} else {
-			int i = (int) (Math.random() * count) + 1;
+			int i = random.nextInt(count) + 1;
 			count = 0;
 			loop: for (int j = 0; j < free.length; j++) {
 				if (free[j]) {
@@ -166,7 +172,7 @@ public class World extends JComponent implements Runnable {
 			if (depth < maxDepth) {
 				world[x][y] = new Wall();
 				int narrow = 1;
-				int dir = (int) (r.nextGaussian() * narrow + lastDir);
+				int dir = (int) (random.nextGaussian() * narrow + lastDir);
 //				dir = lastDir + (dir - (narrow/2));
 				if(dir < 0){
 					dir = 8 + dir;
@@ -212,7 +218,7 @@ public class World extends JComponent implements Runnable {
 
 	private void generateFoodBursts(int x, int y, int depth) {
 		if (x < width && y < height && x >= 0 && y >= 0 && !world[x][y].hasFood) {
-			if (Math.random() < 1 / Math.max(1.0, depth / 20.0)) {
+			if (random.nextDouble() < (1 / Math.max(1.0, depth / 20.0))) {
 				world[x][y].hasFood = true;
 				generateFoodBursts(x - 1, y - 1, depth + 1);
 				generateFoodBursts(x - 1, y, depth + 1);
@@ -293,6 +299,7 @@ public class World extends JComponent implements Runnable {
 	public static void main(String args[]) {
 		int width = 300;
 		int height = 300;
+		String seed = null;
 		for(int i = 0; i < args.length; i++) {
 			if(args[i].equals("-w")) {
 				if(++i < args.length) {
@@ -316,18 +323,25 @@ public class World extends JComponent implements Runnable {
 					System.err.println("-h requires an argument.");
 				}
 			}
+			else if(args[i].equals("-s")) {
+				if(++i < args.length) {
+					seed = args[i];
+				} else {
+					System.err.println("-s requires an argument.");
+				}
+			}
 			else {
 				System.err.println("Unknown argument: " + args[i]);
 			}
 		}
 
 		JFrame frame = new JFrame("Evolution Simulation");
-		final World w = new World(width, height);
-		frame.getContentPane().add(w);
+		World world = (seed == null ? new World(width, height) : new World(width, height, seed.hashCode()));
+		frame.getContentPane().add(world);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.pack();
 		frame.setVisible(true);
 
-		new Thread(w).start();
+		new Thread(world).start();
 	}
 }
