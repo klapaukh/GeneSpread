@@ -9,6 +9,11 @@ import javax.swing.JFrame;
 public class World extends JComponent implements Runnable {
 
 	private static final long serialVersionUID = -1103859412329702985L;
+
+	private static final int DEFAULT_HEIGHT = 300;
+	private static final int DEFAULT_WIDTH = 300;
+	private static final double DEFAULT_FREQUENCY = 50.0;
+
 	private Terrain[][] world;
 	private final int width, height;
 	private final double tickFrequency;
@@ -22,10 +27,6 @@ public class World extends JComponent implements Runnable {
 	private int numMale = 0;
 	private int numFemale = 0;
 	private int numTotal = 0;
-
-	public World(int width, int height, double tickFrequency) {
-		this(width, height, tickFrequency, System.currentTimeMillis());
-	}
 
 	public World(int width, int height, double tickFrequency, long seed) {
 		this.width = width;
@@ -304,10 +305,10 @@ public class World extends JComponent implements Runnable {
 	}
 
 	public static void main(String args[]) {
-		int width = 300;
-		int height = 300;
-		double tickFrequency = 50.0;
-		String seed = null;
+		int width = DEFAULT_WIDTH;
+		int height = DEFAULT_HEIGHT;
+		double tickFrequency = DEFAULT_FREQUENCY;
+		long seed = System.currentTimeMillis();
 		for(int i = 0; i < args.length; i++) {
 			if(args[i].equals("-w")) {
 				if(++i < args.length) {
@@ -344,7 +345,7 @@ public class World extends JComponent implements Runnable {
 			}
 			else if(args[i].equals("-s")) {
 				if(++i < args.length) {
-					seed = args[i];
+					seed = args[i].hashCode();
 				} else {
 					System.err.println("-s requires an argument.");
 				}
@@ -355,7 +356,7 @@ public class World extends JComponent implements Runnable {
 		}
 
 		JFrame frame = new JFrame("Evolution Simulation");
-		World world = (seed == null ? new World(width, height, tickFrequency) : new World(width, height, tickFrequency, seed.hashCode()));
+		World world = new World(width, height, tickFrequency, seed);
 		frame.getContentPane().add(world);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.pack();
