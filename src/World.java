@@ -287,7 +287,7 @@ public class World extends JComponent implements Runnable {
 			long start = System.currentTimeMillis();
 			move();
 			if (ticks % 100 == 0) {
-				System.out.println("Gen " + ticks);
+				System.out.print("\rGen " + ticks);
 				updateStatistics();
 			}
 			ticks++;
