@@ -3,31 +3,37 @@ import java.util.Random;
 
 public class Organism {
 
-	private World parent;
-	private Terrain[][] world;
 	private static final int NUM_GENDER = 2, MAX_INACTIVITY = 2, DISEASE_RECURANCE_TIME = -50, CANNIBAL_TIME_MAX = 10;
-	public static final double DISEASE_CREATION_CHANCE =  0.0001;
-	public boolean immune;
-	private double diseaseVirulence;
-	public Color color;
-	public int life;
-	private DNA dna;
+	private static final double DISEASE_CREATION_CHANCE = 0.0001;
+
+	private final World parent;
+	private final Terrain[][] world;
+	private final long seed;
+	private final Random random;
+
+	private final boolean immune;
+	private final double diseaseVirulence;
+	private final int diseaseDeathTime;
+	private final int maxHunger;
+	private final int fertility;
+	private final int strength;
+	private final int life;
+	private final DNA dna;
+	private final Color color;
+
 	private boolean fertile;
 	private int lastChild;
 	private int age;
 	private int lastMove;
-	public int lastMeal;
-	public int timeSick;
-	private int diseaseDeathTime;
-	private int maxHunger;
+	private int lastMeal;
+	private int timeSick;
 	private int cannibalTime;
-	private int fertility;
-	private int strength;
-	private static final Random r = new Random();
 
-	public Organism(World parent, Terrain[][] world) {
+	public Organism(World parent, Terrain[][] world, long seed) {
 		this.parent = parent;
 		this.world = world;
+		this.seed = seed;
+		this.random = new Random(seed);
 		this.age = 0;
 		this.lastChild = 0;
 		this.fertile = false;
@@ -35,21 +41,22 @@ public class Organism {
 		this.lastMeal = 0;
 		this.cannibalTime = -1;
 		this.timeSick = DISEASE_RECURANCE_TIME - 1;
-		this.dna = new DNA();
+		this.dna = new DNA(random.nextLong());
 		this.fertility = dna.getFertility();
-		life = dna.getLifespan();
-		color = dna.getEyeColor();
-		immune = dna.isImmune();
-		diseaseDeathTime = dna.diseaseDeathTime();
-		maxHunger = dna.maxHunger();
-		diseaseVirulence = dna.diseaseVirulence();
-		strength = dna.getStrength();
-
+		this.life = dna.getLifespan();
+		this.color = dna.getEyeColor();
+		this.immune = dna.isImmune();
+		this.diseaseDeathTime = dna.diseaseDeathTime();
+		this.maxHunger = dna.maxHunger();
+		this.diseaseVirulence = dna.diseaseVirulence();
+		this.strength = dna.getStrength();
 	}
 
 	public Organism(World parent, Terrain[][] world, Organism p1, Organism p2) {
 		this.parent = parent;
 		this.world = world;
+		this.seed = p1.seed ^ p2.seed;
+		this.random = new Random(seed);
 		this.age = 0;
 		this.lastChild = 0;
 		this.fertile = false;
@@ -59,18 +66,18 @@ public class Organism {
 		this.timeSick = DISEASE_RECURANCE_TIME - 1;
 		this.dna = new DNA(p1.dna, p2.dna);
 		this.fertility = dna.getFertility();
-		life = dna.getLifespan();
-		color = dna.getEyeColor();
-		immune = dna.isImmune();
-		diseaseDeathTime = dna.diseaseDeathTime();
-		maxHunger = dna.maxHunger();
-		diseaseVirulence = dna.diseaseVirulence();
-		strength = dna.getStrength();
+		this.life = dna.getLifespan();
+		this.color = dna.getEyeColor();
+		this.immune = dna.isImmune();
+		this.diseaseDeathTime = dna.diseaseDeathTime();
+		this.maxHunger = dna.maxHunger();
+		this.diseaseVirulence = dna.diseaseVirulence();
+		this.strength = dna.getStrength();
 	}
 
 	public boolean move(int x, int y) {
 		// If you're over 100 year old, aren't moving, or are just unlucky you might just die!
-		if ((this.age > life && Math.random() > 0.1) || (lastMove > MAX_INACTIVITY && Math.random() > 0.9)
+		if ((this.age > life && random.nextDouble() > 0.1) || (lastMove > MAX_INACTIVITY && random.nextDouble() > 0.9)
 				|| (lastMeal > maxHunger) || (this.timeSick > diseaseDeathTime && !immune)) {
 			// System.out.println(age);
 			return false;
@@ -81,7 +88,7 @@ public class Organism {
 		if (this.cannibalTime > CANNIBAL_TIME_MAX) {
 			this.cannibalTime = -1;
 		}
-		if (this.timeSick >= 0 || (this.timeSick < DISEASE_RECURANCE_TIME && Math.random() < DISEASE_CREATION_CHANCE)) {
+		if (this.timeSick >= 0 || (this.timeSick < DISEASE_RECURANCE_TIME && random.nextDouble() < DISEASE_CREATION_CHANCE)) {
 			this.timeSick = Math.max(0, timeSick + 1);
 		} else {
 			this.timeSick--;
@@ -102,7 +109,7 @@ public class Organism {
 		/*
 		 * _ _ _ |7|0|1| |6|X|2| |5|4|3|
 		 */
-		int dir = (int) (Math.random() * 8);
+		int dir = random.nextInt(8);
 		Terrain t = null;
 		switch (dir) {
 		case 0:
@@ -188,7 +195,7 @@ public class Organism {
 					t.visitor.lastMeal = 0;
 					return false;
 				}
-			}else{
+			} else {
 //				System.out.println("PEACE");
 			}
 		}
@@ -199,29 +206,29 @@ public class Organism {
 	/**
 	 * @returns True If o1 kills o2 False If o2 kills o1
 	 */
-	public static boolean fight(Organism o1, Organism o2) {
+	private static boolean fight(Organism o1, Organism o2) {
 		int total = o1.strength + o2.strength;
-		return r.nextInt(total) < o1.strength;
+		return o1.random.nextInt(total) < o1.strength;
 	}
 
-	public static boolean attack(Organism o1, Organism o2) {
-		boolean f1 = r.nextDouble() < o1.dna.getAnger() * o1.hungerProportion();
-		boolean f2 = r.nextDouble() < o2.dna.getAnger() * o2.hungerProportion();
-		
-//		if((f1 && f2) ){
+	private static boolean attack(Organism o1, Organism o2) {
+		boolean f1 = o1.random.nextDouble() < o1.dna.getAnger() * o1.hungerProportion();
+		boolean f2 = o2.random.nextDouble() < o2.dna.getAnger() * o2.hungerProportion();
+
+//		if(f1 && f2) {
 //			System.out.println(o1.lastMeal + " " + o2.lastMeal);
 //		}
 		return f1 || f2;
 	}
 
-	public static void infect(Organism o1, Organism o2) {
+	private static void infect(Organism o1, Organism o2) {
 		if ((o1.timeSick < 0 && o2.timeSick < 0) || (o1.timeSick > -1 && o2.timeSick > -1)) {
 			return;
 		}
 		if (o1.timeSick > -1 && o2.timeSick < DISEASE_RECURANCE_TIME) {
-			o2.timeSick = Math.random() < o1.diseaseVirulence ? 0 : -1;
+			o2.timeSick = o1.random.nextDouble() < o1.diseaseVirulence ? 0 : -1;
 		} else if (o1.timeSick < DISEASE_RECURANCE_TIME) {
-			o1.timeSick = Math.random() < o2.diseaseVirulence ? 0 : -1;
+			o1.timeSick = o2.random.nextDouble() < o2.diseaseVirulence ? 0 : -1;
 		}
 	}
 
@@ -238,7 +245,7 @@ public class Organism {
 		return color;
 	}
 
-	public static boolean offer(Organism o1, Organism o2) {
+	private static boolean offer(Organism o1, Organism o2) {
 		if (NUM_GENDER > 1 && o1.dna.getGender() == o2.dna.getGender()) {
 			return false;
 		}
@@ -253,15 +260,15 @@ public class Organism {
 		// Xenophobic - reverse to make antixenophobic
 //		switch (Math.abs(eyerating1 - eyerating2)) {
 //		case 0:
-//			return Math.random() < 0.9;// - Math.abs(canrating1 + canrating2)*2;
+//			return o1.random.nextDouble() < 0.9;// - Math.abs(canrating1 + canrating2)*2;
 //		case 1:
-//			return Math.random() < 0.6;// - Math.abs(canrating1 + canrating2)*2;
+//			return o1.random.nextDouble() < 0.6;// - Math.abs(canrating1 + canrating2)*2;
 //		case 2:
-//			return Math.random() < 0.3;// - Math.abs(canrating1 + canrating2)*2;
+//			return o1.random.nextDouble() < 0.3;// - Math.abs(canrating1 + canrating2)*2;
 //		default:
-//			return Math.random() < 0.1;// - Math.abs(canrating1 + canrating2)*2;
+//			return o1.random.nextDouble() < 0.1;// - Math.abs(canrating1 + canrating2)*2;
 //		}
-		return Math.random() < .5;
+		return o1.random.nextDouble() < 0.5;
 	}
 
 	public boolean hungry() {
@@ -281,5 +288,9 @@ public class Organism {
 
 	public void feed(int fed) {
 		lastMeal -= fed;
+	}
+
+	public Color getBaseColor() {
+		return color;
 	}
 }
