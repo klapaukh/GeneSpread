@@ -42,7 +42,7 @@ public class World extends JComponent implements Runnable {
 			for (int j = 0; j < height; j++) {
 				world[i][j] = new Plains(random.nextDouble() < Plains.FOOD_PROB);
 				if (world[i][j].open() && random.nextDouble() < 0.31) {
-					((Plains) world[i][j]).add(new Organism(this, world));
+					((Plains) world[i][j]).add(new Organism(this, world, random.nextLong()));
 				}
 			}
 		}
