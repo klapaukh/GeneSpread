@@ -6,17 +6,28 @@ import java.util.Random;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 
-public class World extends JComponent {
+public class World extends JComponent implements Runnable {
 
 	private static final long serialVersionUID = -1103859412329702985L;
 	private Terrain[][] world;
 	private int width, height;
 	private Random r;
+	private int ticks = 0;
+
+	// Updated every 100 ticks.
+	private int numGreen = 0;
+	private int numBlue = 0;
+	private int numPink = 0;
+	private int numMale = 0;
+	private int numFemale = 0;
+	private int numTotal = 0;
 
 	public World(int width, int height) {
 		this.width = width;
 		this.height = height;
 		this.r = new Random();
+
+		setDoubleBuffered(true);
 
 		world = new Terrain[width][height];
 		for (int i = 0; i < width; i++) {
@@ -128,10 +139,10 @@ public class World extends JComponent {
 	public void paint(Graphics g) {
 		synchronized (world) {
 			g.setColor(Color.BLACK);
-			g.drawRect(0, 0, this.getWidth(), this.getHeight());
+			g.fillRect(0, 0, this.getWidth(), this.getHeight());
 
 			double particleWidth = this.getWidth() / (double)width;
-			double particleHeight = this.getHeight() / (double)height;
+			double particleHeight = (this.getHeight() - 20) / (double)height;
 
 			for (int i = 0; i < width; i++) {
 				for (int j = 0; j < height; j++) {
@@ -139,11 +150,15 @@ public class World extends JComponent {
 					g.fillRect((int)Math.ceil(i * particleWidth), (int)Math.ceil(j * particleHeight), (int)Math.ceil(particleWidth), (int)Math.ceil(particleHeight));
 				}
 			}
+			g.setColor(Color.WHITE);
+			g.drawString(String.format("Ticks: %d | Green: %.1f%% Blue: %.1f%% Pink: %.1f%% | Male: %.1f%% Female: %.1f%% | Total: %d", ticks,
+				((double)numGreen/numTotal)*100, ((double)numBlue/numTotal)*100, ((double)numPink/numTotal)*100,
+				((double)numMale/numTotal)*100, ((double)numFemale/numTotal)*100, numTotal), 5, this.getHeight() - 5);
 		}
 	}
 
 	public Dimension getPreferredSize() {
-		return new Dimension(width, height);
+		return new Dimension(width, height + 20);
 	}
 
 	public boolean placeWalls(int x, int y, int depth, int maxDepth, int lastDir) {
@@ -220,6 +235,61 @@ public class World extends JComponent {
 		}
 	}
 
+	private void updateStatistics() {
+		numPink = numBlue = numGreen = numMale = numFemale = numTotal = 0;
+		synchronized(world) {
+			for (int i = 0; i < width; i++) {
+				for (int j = 0; j < height; j++) {
+					Organism o = world[i][j].visitor;
+					if(o == null)
+						continue;
+					if(o.color.equals(Color.MAGENTA.brighter())) {
+						numPink++;
+						numFemale++;
+					}
+					else if(o.color.equals(Color.MAGENTA.darker())) {
+						numPink++;
+						numMale++;
+					}
+					else if(o.color.equals(Color.BLUE.brighter())) {
+						numBlue++;
+						numFemale++;
+					}
+					else if(o.color.equals(Color.BLUE.darker())) {
+						numBlue++;
+						numMale++;
+					}
+					else if(o.color.equals(Color.GREEN.brighter())) {
+						numGreen++;
+						numFemale++;
+					}
+					else if(o.color.equals(Color.GREEN.darker())) {
+						numGreen++;
+						numMale++;
+					}
+					numTotal++;
+				}
+			}
+		}
+	}
+
+	public void run() {
+		while (true) {
+			move();
+			if (ticks % 100 == 0) {
+				System.out.println("Gen " + ticks);
+				updateStatistics();
+			}
+			ticks++;
+			repaint();
+			try {
+				Thread.sleep(20);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
 	public static void main(String args[]) {
 		int width = 300;
 		int height = 300;
@@ -258,25 +328,6 @@ public class World extends JComponent {
 		frame.pack();
 		frame.setVisible(true);
 
-		Thread t = new Thread(new Runnable() {
-			public void run() {
-				int i = 0;
-				while (true) {
-					w.move();
-					if (i % 100 == 0) {
-						System.out.println("Gen " + i);
-					}
-					i++;
-					w.repaint();
-					try {
-						Thread.sleep(20);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-				}
-			}
-		});
-		t.start();
-
+		new Thread(w).start();
 	}
 }
