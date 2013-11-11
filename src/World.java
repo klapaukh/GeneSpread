@@ -29,7 +29,7 @@ public class World extends JComponent implements Runnable {
 	private int numFemale = 0;
 	private int numTotal = 0;
 
-	public World(int width, int height, double tickFrequency, long seed, int numWalls) {
+	public World(int width, int height, double tickFrequency, long seed, int numWalls, int numFoodSources) {
 		this.width = width;
 		this.height = height;
 		this.tickFrequency = tickFrequency;
@@ -51,8 +51,9 @@ public class World extends JComponent implements Runnable {
 		/*
 		 * Make some food sources
 		 */
-		int max = random.nextInt(4) + 5;
-		for (int i = 0; i < max; i++) {
+		if(numFoodSources == -1)
+			numFoodSources = random.nextInt(4) + 5;
+		for (int i = 0; i < numFoodSources; i++) {
 			generateFoodBursts(random.nextInt(width), random.nextInt(height), 0);
 		}
 
@@ -328,6 +329,7 @@ public class World extends JComponent implements Runnable {
 		double tickFrequency = DEFAULT_FREQUENCY;
 		long seed = System.currentTimeMillis();
 		int numWalls = -1;
+		int numFoodSources = -1;
 
 		// Handle arguments.
 		for(int i = 0; i < args.length; i++) {
@@ -382,6 +384,17 @@ public class World extends JComponent implements Runnable {
 					System.err.println("-n requires an argument.");
 				}
 			}
+			else if(args[i].equals("-f")) {
+				if(++i < args.length) {
+					try {
+						numFoodSources = Integer.parseInt(args[i]);
+					} catch(NumberFormatException e) {
+						System.err.println("Invalid number of food sources: " + args[i]);
+					}
+				} else {
+					System.err.println("-f requires an argument.");
+				}
+			}
 			else {
 				System.err.println("Unknown argument: " + args[i]);
 			}
@@ -389,7 +402,7 @@ public class World extends JComponent implements Runnable {
 
 		// Create GUI.
 		JFrame frame = new JFrame("Evolution Simulation");
-		World world = new World(width, height, tickFrequency, seed, numWalls);
+		World world = new World(width, height, tickFrequency, seed, numWalls, numFoodSources);
 		frame.getContentPane().add(world);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.pack();
