@@ -17,7 +17,6 @@ public class World extends JComponent implements Runnable {
 	private final int width, height;
 	private final double tickFrequency;
 	private final Terrain[][] world;
-	private final long seed;
 	private final Random random;
 
 	private int ticks = 0;
@@ -34,7 +33,6 @@ public class World extends JComponent implements Runnable {
 		this.width = width;
 		this.height = height;
 		this.tickFrequency = tickFrequency;
-		this.seed = seed;
 		this.random = new Random(seed);
 		System.out.println("World created with seed " + seed);
 
@@ -50,11 +48,17 @@ public class World extends JComponent implements Runnable {
 			}
 		}
 
+		/*
+		 * Make some food sources
+		 */
 		int max = random.nextInt(4) + 5;
 		for (int i = 0; i < max; i++) {
 			generateFoodBursts(random.nextInt(width), random.nextInt(height), 0);
 		}
 
+		/*
+		 * Build some walls
+		 */
 		max = random.nextInt(10) + 3;
 		for (int i = 0; i < max; i++) {
 			placeWalls(random.nextInt(width), random.nextInt(height), 0, random.nextInt(500) + 100, random.nextInt(8));
@@ -173,18 +177,28 @@ public class World extends JComponent implements Runnable {
 		return new Dimension(width, height + 20);
 	}
 
+	/**
+	 * Create a wall
+	 * @param x X position to make into a wall
+	 * @param y Y position to make into a wal
+	 * @param depth How long the wall is
+	 * @param maxDepth How long to make the wall
+	 * @param lastDir The direction I went to get here
+	 * @return Whether or not I actually made a wall
+	 */
 	private boolean placeWalls(int x, int y, int depth, int maxDepth, int lastDir) {
-		if (x < width && y < height && x >= 0 && y >= 0) {
-			if (depth < maxDepth) {
-				world[x][y] = new Wall();
+		if (x < width && y < height && x >= 0 && y >= 0) { //Make sure you are on the map
+			if (depth < maxDepth) { //Make sure the wall isn't supposed to finish here
+				world[x][y] = new Wall(); //This is a wall now
+
+				//The direction the wall continues in is a gaussian distrobution
+				//with sd as narrow.
 				int narrow = 1;
-				int dir = (int) (random.nextGaussian() * narrow + lastDir);
-//				dir = lastDir + (dir - (narrow/2));
+				int dir = (int) ((random.nextGaussian() * narrow + lastDir))% 8;
 				if(dir < 0){
 					dir = 8 + dir;
-				} else if(dir > 7){
-					dir -= 8;
 				}
+				//Create a new wall in the correct direction
 				switch (dir) {
 				case 0:
 					placeWalls(x - 1, y - 1, depth + 1,maxDepth,dir);
@@ -211,11 +225,11 @@ public class World extends JComponent implements Runnable {
 					placeWalls(x + 1, y + 1, depth + 1,maxDepth,dir);
 					break;
 				default:
-					System.out.println("DOOM");
+					throw new RuntimeException("Illegal direction: " + dir);
 				}
 				return true;
 			} else {
-				return true;
+				return false;
 			}
 		} else {
 			return false;
