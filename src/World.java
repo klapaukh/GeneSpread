@@ -195,11 +195,10 @@ public class World extends JComponent implements Runnable {
 
 				//The direction the wall continues in is a gaussian distrobution
 				//with sd as narrow.
-				int narrow = 1;
-				int dir = (int) ((random.nextGaussian() * narrow + lastDir))% 8;
-				if(dir < 0){
+				double narrow = 0.5;
+				int dir = (int)Math.round(random.nextGaussian() * narrow + lastDir) % 8;
+				if(dir < 0)
 					dir = 8 + dir;
-				}
 				//Create a new wall in the correct direction
 				switch (dir) {
 				case 0:
