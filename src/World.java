@@ -61,7 +61,7 @@ public class World extends JComponent implements Runnable {
 		 * Build some walls
 		 */
 		if(numWalls == -1)
-			numWalls = random.nextInt(10) + 3;
+			numWalls = random.nextInt(10) + ((width * height) / 25000);
 		for (int i = 0; i < numWalls; i++) {
 			placeWalls(random.nextInt(width), random.nextInt(height), 0, random.nextInt(500) + 100, random.nextInt(8));
 		}
