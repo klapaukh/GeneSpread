@@ -52,7 +52,7 @@ public class World extends JComponent implements Runnable {
 		 * Make some food sources
 		 */
 		if(numFoodSources == -1)
-			numFoodSources = random.nextInt(4) + 5;
+			numFoodSources = random.nextInt(4) + ((width * height) / 25000);
 		for (int i = 0; i < numFoodSources; i++) {
 			generateFoodBursts(random.nextInt(width), random.nextInt(height), 0);
 		}
