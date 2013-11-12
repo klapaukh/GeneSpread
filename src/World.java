@@ -52,7 +52,7 @@ public class World extends JComponent implements Runnable {
 		 * Make some food sources
 		 */
 		if(numFoodSources == -1)
-			numFoodSources = random.nextInt(4) + 5;
+			numFoodSources = random.nextInt(4) + ((width * height) / 25000);
 		for (int i = 0; i < numFoodSources; i++) {
 			generateFoodBursts(random.nextInt(width), random.nextInt(height), 0);
 		}
@@ -61,7 +61,7 @@ public class World extends JComponent implements Runnable {
 		 * Build some walls
 		 */
 		if(numWalls == -1)
-			numWalls = random.nextInt(10) + 3;
+			numWalls = random.nextInt(10) + ((width * height) / 25000);
 		for (int i = 0; i < numWalls; i++) {
 			placeWalls(random.nextInt(width), random.nextInt(height), 0, random.nextInt(500) + 100, random.nextInt(8));
 		}
@@ -195,11 +195,10 @@ public class World extends JComponent implements Runnable {
 
 				//The direction the wall continues in is a gaussian distrobution
 				//with sd as narrow.
-				int narrow = 1;
-				int dir = (int) ((random.nextGaussian() * narrow + lastDir))% 8;
-				if(dir < 0){
+				double narrow = 0.5;
+				int dir = (int)Math.round(random.nextGaussian() * narrow + lastDir) % 8;
+				if(dir < 0)
 					dir = 8 + dir;
-				}
 				//Create a new wall in the correct direction
 				switch (dir) {
 				case 0:
