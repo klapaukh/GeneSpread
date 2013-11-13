@@ -1,10 +1,15 @@
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+
+import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
+import org.apache.commons.math3.util.FastMath;
 
 public class World extends JComponent implements Runnable {
 
@@ -51,7 +56,7 @@ public class World extends JComponent implements Runnable {
 		/*
 		 * Make some food sources
 		 */
-		if(numFoodSources == -1)
+		if (numFoodSources == -1)
 			numFoodSources = random.nextInt(4) + ((width * height) / 25000);
 		for (int i = 0; i < numFoodSources; i++) {
 			generateFoodBursts(random.nextInt(width), random.nextInt(height), 0);
@@ -60,10 +65,10 @@ public class World extends JComponent implements Runnable {
 		/*
 		 * Build some walls
 		 */
-		if(numWalls == -1)
+		if (numWalls == -1)
 			numWalls = random.nextInt(10) + ((width * height) / 25000);
 		for (int i = 0; i < numWalls; i++) {
-			placeWalls(random.nextInt(width), random.nextInt(height), 0, random.nextInt(500) + 100, random.nextInt(8));
+			placeWall();
 		}
 	}
 
@@ -159,19 +164,20 @@ public class World extends JComponent implements Runnable {
 			g.setColor(Color.BLACK);
 			g.fillRect(0, 0, this.getWidth(), this.getHeight());
 
-			double particleWidth = this.getWidth() / (double)width;
-			double particleHeight = (this.getHeight() - 20) / (double)height;
+			double particleWidth = this.getWidth() / (double) width;
+			double particleHeight = (this.getHeight() - 20) / (double) height;
 
 			for (int i = 0; i < width; i++) {
 				for (int j = 0; j < height; j++) {
 					g.setColor(world[i][j].getColor());
-					g.fillRect((int)Math.ceil(i * particleWidth), (int)Math.ceil(j * particleHeight), (int)Math.ceil(particleWidth), (int)Math.ceil(particleHeight));
+					g.fillRect((int) Math.ceil(i * particleWidth), (int) Math.ceil(j * particleHeight), (int) Math.ceil(particleWidth),
+							(int) Math.ceil(particleHeight));
 				}
 			}
 			g.setColor(Color.WHITE);
 			g.drawString(String.format("Ticks: %d | Green: %.1f%% Blue: %.1f%% Pink: %.1f%% | Male: %.1f%% Female: %.1f%% | Total: %d", ticks,
-				((double)numGreen/numTotal)*100, ((double)numBlue/numTotal)*100, ((double)numPink/numTotal)*100,
-				((double)numMale/numTotal)*100, ((double)numFemale/numTotal)*100, numTotal), 5, this.getHeight() - 5);
+					((double) numGreen / numTotal) * 100, ((double) numBlue / numTotal) * 100, ((double) numPink / numTotal) * 100,
+					((double) numMale / numTotal) * 100, ((double) numFemale / numTotal) * 100, numTotal), 5, this.getHeight() - 5);
 		}
 	}
 
@@ -180,60 +186,40 @@ public class World extends JComponent implements Runnable {
 	}
 
 	/**
-	 * Create a wall
-	 * @param x X position to make into a wall
-	 * @param y Y position to make into a wal
-	 * @param depth How long the wall is
-	 * @param maxDepth How long to make the wall
-	 * @param lastDir The direction I went to get here
-	 * @return Whether or not I actually made a wall
+	 * This places a wall. The wall is a bezeir curve with a random number of
+	 * control points.
 	 */
-	private boolean placeWalls(int x, int y, int depth, int maxDepth, int lastDir) {
-		if (x < width && y < height && x >= 0 && y >= 0) { //Make sure you are on the map
-			if (depth < maxDepth) { //Make sure the wall isn't supposed to finish here
-				world[x][y] = new Wall(); //This is a wall now
+	private void placeWall() {
+		int x1 = random.nextInt(width);
+		int y1 = random.nextInt(height);
+		double theta = random.nextDouble() * Math.PI;
+		double length = random.nextInt((int)FastMath.sqrt(width*width + height*height)/2) + 10;
+		int nControls = (int) Math.round(length / 100);
 
-				//The direction the wall continues in is a gaussian distrobution
-				//with sd as narrow.
-				double narrow = 0.5;
-				int dir = (int)Math.round(random.nextGaussian() * narrow + lastDir) % 8;
-				if(dir < 0)
-					dir = 8 + dir;
-				//Create a new wall in the correct direction
-				switch (dir) {
-				case 0:
-					placeWalls(x - 1, y - 1, depth + 1,maxDepth,dir);
-					break;
-				case 1:
-					placeWalls(x - 1, y, depth + 1,maxDepth,dir);
-					break;
-				case 2:
-					placeWalls(x - 1, y + 1, depth + 1,maxDepth,dir);
-					break;
-				case 3:
-					placeWalls(x, y - 1, depth + 1,maxDepth,dir);
-					break;
-				case 4:
-					placeWalls(x, y + 1, depth + 1,maxDepth,dir);
-					break;
-				case 5:
-					placeWalls(x + 1, y - 1, depth + 1,maxDepth,dir);
-					break;
-				case 6:
-					placeWalls(x + 1, y, depth + 1,maxDepth,dir);
-					break;
-				case 7:
-					placeWalls(x + 1, y + 1, depth + 1,maxDepth,dir);
-					break;
-				default:
-					throw new RuntimeException("Illegal direction: " + dir);
-				}
-				return true;
-			} else {
-				return false;
-			}
-		} else {
-			return false;
+		Vector2D start = new Vector2D(x1, y1);
+		Vector2D direction = new Vector2D(-Math.sin(theta), Math.cos(theta));
+		Vector2D pdirection = new Vector2D(-Math.sin(theta + Math.PI / 4), Math.cos(theta + Math.PI / 4));
+		Vector2D end = new Vector2D(1, start, length, direction);
+
+		List<Vector2D> controlPoints = new ArrayList<>();
+		controlPoints.add(start);
+		for (int i = 0; i < nControls; i++) {
+			double dist = Math.random() * length;
+			Vector2D lineIntercept = new Vector2D(1, start, dist, direction);
+			double alt = (Math.random() * 200)-100;
+			Vector2D control = new Vector2D(1, lineIntercept, alt, pdirection);
+			controlPoints.add(control);
+		}
+		controlPoints.add(end);
+
+		double tSize = length*100;
+		double tInc = 1.0 / tSize;
+		for (double t = 0; t <= 1; t += tInc) {
+			Vector2D coord = MathUtil.drawBezier(t, controlPoints);
+			int x = (int) Math.round(coord.getX());
+			int y = (int) Math.round(coord.getY());
+			if (x > 0 && x < width && y > 0 && y < height && world[x][y].open)
+				world[x][y] = new Wall();
 		}
 	}
 
@@ -255,33 +241,28 @@ public class World extends JComponent implements Runnable {
 
 	private void updateStatistics() {
 		numPink = numBlue = numGreen = numMale = numFemale = numTotal = 0;
-		synchronized(world) {
+		synchronized (world) {
 			for (int i = 0; i < width; i++) {
 				for (int j = 0; j < height; j++) {
 					Organism o = world[i][j].visitor;
-					if(o == null)
+					if (o == null)
 						continue;
-					if(o.getBaseColor().equals(Color.MAGENTA.brighter())) {
+					if (o.getBaseColor().equals(Color.MAGENTA.brighter())) {
 						numPink++;
 						numFemale++;
-					}
-					else if(o.getBaseColor().equals(Color.MAGENTA.darker())) {
+					} else if (o.getBaseColor().equals(Color.MAGENTA.darker())) {
 						numPink++;
 						numMale++;
-					}
-					else if(o.getBaseColor().equals(Color.BLUE.brighter())) {
+					} else if (o.getBaseColor().equals(Color.BLUE.brighter())) {
 						numBlue++;
 						numFemale++;
-					}
-					else if(o.getBaseColor().equals(Color.BLUE.darker())) {
+					} else if (o.getBaseColor().equals(Color.BLUE.darker())) {
 						numBlue++;
 						numMale++;
-					}
-					else if(o.getBaseColor().equals(Color.GREEN.brighter())) {
+					} else if (o.getBaseColor().equals(Color.GREEN.brighter())) {
 						numGreen++;
 						numFemale++;
-					}
-					else if(o.getBaseColor().equals(Color.GREEN.darker())) {
+					} else if (o.getBaseColor().equals(Color.GREEN.darker())) {
 						numGreen++;
 						numMale++;
 					}
@@ -292,18 +273,18 @@ public class World extends JComponent implements Runnable {
 	}
 
 	public void run() {
-		long tickPeriod = (long)((1/tickFrequency)*1000);
+		long tickPeriod = (long) ((1 / tickFrequency) * 1000);
 		while (true) {
 			long start = System.currentTimeMillis();
 			move();
 			if (ticks % 100 == 0) {
-				System.out.print("\rGen " + ticks);
+				// System.out.print("\rGen " + ticks);
 				updateStatistics();
 			}
 			ticks++;
 			repaint();
 			long end = System.currentTimeMillis();
-			if((end - start) < tickPeriod) {
+			if ((end - start) < tickPeriod) {
 				try {
 					Thread.sleep((tickPeriod) - (end - start));
 				} catch (InterruptedException e) {
@@ -322,70 +303,64 @@ public class World extends JComponent implements Runnable {
 		int numFoodSources = -1;
 
 		// Handle arguments.
-		for(int i = 0; i < args.length; i++) {
-			if(args[i].equals("-w")) {
-				if(++i < args.length) {
+		for (int i = 0; i < args.length; i++) {
+			if (args[i].equals("-w")) {
+				if (++i < args.length) {
 					try {
 						width = Integer.parseInt(args[i]);
-					} catch(NumberFormatException e) {
+					} catch (NumberFormatException e) {
 						System.err.println("Invalid width: " + args[i]);
 					}
 				} else {
 					System.err.println("-w requires an argument.");
 				}
-			}
-			else if(args[i].equals("-h")) {
-				if(++i < args.length) {
+			} else if (args[i].equals("-h")) {
+				if (++i < args.length) {
 					try {
 						height = Integer.parseInt(args[i]);
-					} catch(NumberFormatException e) {
+					} catch (NumberFormatException e) {
 						System.err.println("Invalid height: " + args[i]);
 					}
 				} else {
 					System.err.println("-h requires an argument.");
 				}
-			}
-			else if(args[i].equals("-t")) {
-				if(++i < args.length) {
+			} else if (args[i].equals("-t")) {
+				if (++i < args.length) {
 					try {
 						tickFrequency = Double.parseDouble(args[i]);
-					} catch(NumberFormatException e) {
+					} catch (NumberFormatException e) {
 						System.err.println("Invalid tick frequency: " + args[i]);
 					}
 				} else {
 					System.err.println("-t requires an argument.");
 				}
-			}
-			else if(args[i].equals("-s")) {
-				if(++i < args.length) {
+			} else if (args[i].equals("-s")) {
+				if (++i < args.length) {
 					seed = args[i].hashCode();
 				} else {
 					System.err.println("-s requires an argument.");
 				}
-			}
-			else if(args[i].equals("-n")) {
-				if(++i < args.length) {
+			} else if (args[i].equals("-n")) {
+				if (++i < args.length) {
 					try {
 						numWalls = Integer.parseInt(args[i]);
-					} catch(NumberFormatException e) {
+					} catch (NumberFormatException e) {
 						System.err.println("Invalid number of walls: " + args[i]);
 					}
 				} else {
 					System.err.println("-n requires an argument.");
 				}
-			}
-			else if(args[i].equals("-f")) {
-				if(++i < args.length) {
+			} else if (args[i].equals("-f")) {
+				if (++i < args.length) {
 					try {
 						numFoodSources = Integer.parseInt(args[i]);
-					} catch(NumberFormatException e) {
+					} catch (NumberFormatException e) {
 						System.err.println("Invalid number of food sources: " + args[i]);
 					}
 				} else {
 					System.err.println("-f requires an argument.");
 				}
-			}
-			else {
+			} else {
 				System.err.println("Unknown argument: " + args[i]);
 			}
 		}
@@ -401,4 +376,5 @@ public class World extends JComponent implements Runnable {
 		// Start simulation.
 		new Thread(world).start();
 	}
+
 }
