@@ -250,15 +250,6 @@ public class World extends JComponent implements Runnable {
 				generateFoodBursts(x + 1, y, depth + 1);
 				generateFoodBursts(x + 1, y + 1, depth + 1);
 			}
-		} else if (depth == 0) {
-			generateFoodBursts(x - 1, y - 1, depth + 1);
-			generateFoodBursts(x - 1, y, depth + 1);
-			generateFoodBursts(x - 1, y + 1, depth + 1);
-			generateFoodBursts(x, y - 1, depth + 1);
-			generateFoodBursts(x, y + 1, depth + 1);
-			generateFoodBursts(x + 1, y - 1, depth + 1);
-			generateFoodBursts(x + 1, y, depth + 1);
-			generateFoodBursts(x + 1, y + 1, depth + 1);
 		}
 	}
 
