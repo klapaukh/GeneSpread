@@ -10,18 +10,18 @@ It additionally shows how groups tend to form around food sources, and how disea
 
 ###Dependencies
 
-	* Java 1.7
-	* Apache commons-math 3.2
+ * Java 1.7
+ * Apache commons-math 3.2
 
 ###Visual Key
 
-	* **Green** a dot with two different color alleles
-	* **Blue** a dot with two of the same color alleles
-	* **Purple** a dot with two of the same color alleles
-	* **White** a dot which is sick, contagious and will die
-	* **Yellow** a dot which is sick, contagious and will not die (immunity)
-	* **Black** a doc which has recently eaten another dot
-	* **Red** Food
-	* **Pink** Bare ground
-	* Darker dots are male
-	* Lighter dots are female
+ * **Green** a dot with two different color alleles
+ * **Blue** a dot with two of the same color alleles
+ * **Purple** a dot with two of the same color alleles
+ * **White** a dot which is sick, contagious and will die
+ * **Yellow** a dot which is sick, contagious and will not die (immunity)
+ * **Black** a doc which has recently eaten another dot
+ * **Red** Food
+ * **Pink** Bare ground
+ * Darker dots are male
+ * Lighter dots are female
