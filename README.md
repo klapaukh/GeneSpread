@@ -14,14 +14,23 @@ It additionally shows how groups tend to form around food sources, and how disea
 
 ###Building
 
-In order to build GeneSpread you must first download Apache Commons Math 3.2 and place it in `lib/commons-math3-3.2.jar`.
-Then run `ant` to generate `GeneSpread.jar`. To run GeneSpread without any arguments you can use `ant run`.
+In order to build GeneSpread you must first download Apache Commons Math 3.2 and place it in `lib/commons-math3-3.2.jar`, and then run `ant` to generate `GeneSpread.jar`.
 
-To run GeneSpread outside of ant, use the following invocation:
+###Running
+
+GeneSpread can be run without any arguments using `ant run`, and can be run outside of ant using the following invocation:
 
 ```bash
 java -cp "GeneSpread.jar;lib/commons-math3-3.2.jar" World
 ```
+
+GeneSpread takes the following optional arguments:
+
+* `-w [number]` The width of the world. The default is 300.
+* `-h [number]` The height of the world. The default is 300.
+* `-f [number]` The number of food sources in the world. The default is based on the size of the world.
+* `-n [number]` The number of walls in the world. The default is based on the size of the world.
+* `-s [string]` The seed for the simulation. The default is based on the current time.
 
 ###Visual Key
 
