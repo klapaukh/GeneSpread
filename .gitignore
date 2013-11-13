@@ -1,4 +1,6 @@
+GeneSpread.jar
 bin/
+lib/
 .project
 .classpath
 .directory
@@ -7,4 +9,3 @@ bin/
 *~
 *#
 *.class
-commons-math3-3.2/
