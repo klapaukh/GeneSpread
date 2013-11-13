@@ -21,6 +21,12 @@ In order to build GeneSpread you must first download Apache Commons Math 3.2 and
 GeneSpread can be run without any arguments using `ant run`, and can be run outside of ant using the following invocation:
 
 ```bash
+java -cp "GeneSpread.jar:lib/commons-math3-3.2.jar" World
+```
+
+Or for Windows (note the change from `:` to `;`):
+
+```bash
 java -cp "GeneSpread.jar;lib/commons-math3-3.2.jar" World
 ```
 
