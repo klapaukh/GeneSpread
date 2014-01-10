@@ -1,8 +1,12 @@
+GeneSpread.jar
 bin/
-.classpath
+lib/
 .project
-.settings
-*.class
+.classpath
+.directory
+.settings/
 *.swp
 *.swo
 *~
+*#
+*.class
